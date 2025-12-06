@@ -2,7 +2,7 @@
   "id": "brians-power-pack",
   "title": "Brian's Power Pack",
   "description": "A collection of power packs for Foundry VTT",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "compatibility": {
     "minimum": "12",
     "verified": "12"
