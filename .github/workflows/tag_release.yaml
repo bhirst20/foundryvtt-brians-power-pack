@@ -38,13 +38,45 @@ jobs:
     needs: check-version
     if: needs.check-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get module ID
+        id: module-id
+        run: |
+          MODULE_ID=$(jq -r '.id' module.json)
+          echo "module_id=$MODULE_ID" >> $GITHUB_OUTPUT
+
+      - name: Create module zip
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+          MODULE_ID: ${{ steps.module-id.outputs.module_id }}
+        run: |
+          # Create zip file with module contents
+          zip -r "$MODULE_ID-v$VERSION.zip" . \
+            -x "*.git*" \
+            -x "*.github*" \
+            -x "node_modules/*" \
+            -x "*.zip"
+
+      - name: Update module.json download URL
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+          MODULE_ID: ${{ steps.module-id.outputs.module_id }}
+        run: |
+          # Update download URL to point to S3
+          jq --arg url "https://hjedi-foundry-modules.s3.us-east-2.amazonaws.com/$MODULE_ID-v$VERSION.zip" \
+            '.download = $url' module.json > module.json.tmp
+          mv module.json.tmp module.json
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           VERSION: ${{ needs.check-version.outputs.version }}
+          MODULE_ID: ${{ steps.module-id.outputs.module_id }}
         run: |
           # Check if tag exists
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
@@ -55,4 +87,26 @@ jobs:
           # Create tag and release
           gh release create "v$VERSION" \
             --title "Release v$VERSION" \
-            --generate-notes
+            --generate-notes \
+            "$MODULE_ID-v$VERSION.zip"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::752432937359:role/github_actions_foundry_repo
+          aws-region: us-east-2
+
+      - name: Upload to S3
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+          MODULE_ID: ${{ steps.module-id.outputs.module_id }}
+        run: |
+          # Upload zip file with public-read ACL
+          aws s3 cp "$MODULE_ID-v$VERSION.zip" \
+            "s3://hjedi-foundry-modules/$MODULE_ID-v$VERSION.zip" \
+            --acl public-read
+
+          # Upload updated module.json with public-read ACL
+          aws s3 cp module.json \
+            "s3://hjedi-foundry-modules/module.json" \
+            --acl public-read
