@@ -51,8 +51,8 @@ def update_module_json(new_version: str, module_path: Path = Path("module.json")
         download_url = data['download']
         # Replace the version number in the download URL
         new_download = re.sub(
-            r'/releases/download/[\d.]+/',
-            f'/releases/download/{new_version}/',
+            r'/archive/refs/tags/v[\d.]+\.zip',
+            f'/archive/refs/tags/{new_version}.zip',
             download_url
         )
         data['download'] = new_download
