@@ -16,12 +16,31 @@
   ],
   "url": "https://github.com/bhirst20/foundryvtt-brians-power-pack",
   "manifest": "https://hjedi-foundry-modules.s3.us-east-2.amazonaws.com/module.json",
-  "download": "https://github.com/bhirst20/foundryvtt-brians-power-pack/archive/refs/tags/0.0.2.zip",
-  "languages": [
+  "download": "https://hjedi-foundry-modules.s3.us-east-2.amazonaws.com/brians-power-pack-v0.0.4.zip",
+  "packs": [
     {
-      "lang": "en",
-      "name": "English",
-      "path": "languages/en.json"
+      "name": "monsters",
+      "label": "Monsters",
+      "path": "packs/monsters",
+      "type": "Actor",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "system": "dnd5e",
+      "flags": {}
+    },
+    {
+      "name": "fates-and-fortines",
+      "label": "Fates and Fortines",
+      "path": "packs/fates-and-fortines",
+      "type": "Cards",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "system": "dnd5e",
+      "flags": {}
     }
   ]
 }
